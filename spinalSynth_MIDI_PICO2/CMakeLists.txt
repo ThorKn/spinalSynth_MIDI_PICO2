@@ -33,11 +33,15 @@ project(spinalSynth_MIDI_PICO2 C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+# Add Pico-PIO-USB subdirectory
+add_subdirectory(Pico-PIO-USB)
+
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(spinalSynth_MIDI_PICO2
     spinalSynth_MIDI_PICO2.c
     usb_midi_host.c
+    hcd_pio_usb.c
 )
 
 pico_set_program_name(spinalSynth_MIDI_PICO2 "spinalSynth_MIDI_PICO2")
@@ -47,15 +51,22 @@ pico_set_program_version(spinalSynth_MIDI_PICO2 "0.1")
 pico_enable_stdio_uart(spinalSynth_MIDI_PICO2 1)
 pico_enable_stdio_usb(spinalSynth_MIDI_PICO2 0)
 
-# Add the standard library and TinyUSB Host libraries to the build
+# Add the standard library, TinyUSB Host, and PIO USB libraries to the build
 target_link_libraries(spinalSynth_MIDI_PICO2
         pico_stdlib
         tinyusb_host
+        pico_pio_usb
         m)
 
 # Add the standard include files to the build
 target_include_directories(spinalSynth_MIDI_PICO2 PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
+)
+
+# Use TinyUSB's implementation for Pico-PIO-USB
+target_compile_definitions(spinalSynth_MIDI_PICO2 PRIVATE 
+    PIO_USB_USE_TINYUSB
+    USB_DEBUG_PRINTS=0
 )
 
 pico_add_extra_outputs(spinalSynth_MIDI_PICO2)

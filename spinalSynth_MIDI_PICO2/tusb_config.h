@@ -14,16 +14,17 @@
 #endif
 
 #ifndef CFG_TUSB_OS
-  #define CFG_TUSB_OS              OPT_OS_NONE
+  #define CFG_TUSB_OS              OPT_OS_PICO
 #endif
 
 //--------------------------------------------------------------------
 // HOST CONFIGURATION
 //--------------------------------------------------------------------
 
-#ifndef CFG_TUSB_RHPORT0_MODE
-  #define CFG_TUSB_RHPORT0_MODE    OPT_MODE_HOST
-#endif
+#define CFG_TUSB_RHPORT0_MODE    OPT_MODE_NONE
+#define CFG_TUSB_RHPORT1_MODE    OPT_MODE_HOST
+
+#define CFG_TUH_RPI_PIO_USB      1
 
 #define CFG_TUH_API_EDPT_XFER    1
 

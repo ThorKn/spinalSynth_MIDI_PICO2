@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <math.h>
 #include "pico/stdlib.h"
+#include "pico/multicore.h"
+#include "hardware/clocks.h"
 #include "hardware/uart.h"
 #include "hardware/gpio.h"
+#include "hardware/dma.h"
+#include "pio_usb.h"
 #include "tusb.h"
+#include "host/usbh_pvt.h"
 #include "usb_midi_host.h"
 
 // Synthesizer Register Addresses
@@ -35,7 +40,7 @@
 #define UART_RX_PIN      5
 
 #ifndef BOARD_TUH_RHPORT
-#define BOARD_TUH_RHPORT 0
+#define BOARD_TUH_RHPORT 1
 #endif
 
 // Stateful register cache
@@ -90,6 +95,21 @@ static void set_env_curve_model(uint8_t curve_model) {
 static void set_env_gate(bool gate_on) {
     uint8_t gate_byte = gate_on ? 0x01 : 0x00;
     write_register(REG_ENV_GATE, gate_byte);
+}
+
+// Implementation of TinyUSB weak callback to register custom MIDI class driver
+usbh_class_driver_t const* usbh_app_driver_get_cb(uint8_t* driver_count) {
+    static usbh_class_driver_t const midi_driver = {
+        .name = "MIDI",
+        .init = midih_init,
+        .deinit = midih_deinit,
+        .open = midih_open,
+        .set_config = midih_set_config,
+        .xfer_cb = midih_xfer_cb,
+        .close = midih_close
+    };
+    *driver_count = 1;
+    return &midi_driver;
 }
 
 //--------------------------------------------------------------------
@@ -189,13 +209,53 @@ void tuh_midi_rx_cb(uint8_t dev_addr, uint32_t num_packets) {
 // Main Execution
 //--------------------------------------------------------------------
 
-int main()
-{
-    // Initialize standard IO (USB / UART)
-    stdio_init_all();
-    
+// Core 1 main: handle PIO-USB and TinyUSB Host task
+void core1_main() {
+    sleep_ms(10);
+
+    // Configure PIO-USB. By default, pinout is PIO_USB_PINOUT_DPDM,
+    // so DP pin is 16 and DM pin is automatically 17 (DP+1).
+    pio_usb_configuration_t pio_cfg = PIO_USB_DEFAULT_CONFIG;
+    pio_cfg.pin_dp = 16;
+
+    // Claim a free DMA channel dynamically to avoid hardware conflicts
+    int dma_ch = dma_claim_unused_channel(true);
+    dma_channel_unclaim(dma_ch); // Unclaim it so pio_usb's internal library can claim it without a panic
+    pio_cfg.tx_ch = dma_ch;
+
+    // Create an alarm pool using a free hardware alarm instead of letting pio_usb hardcode alarm 2
+    alarm_pool_t *ap = alarm_pool_create_with_unused_hardware_alarm(1);
+    pio_cfg.alarm_pool = ap;
+
+    tuh_configure(BOARD_TUH_RHPORT, TUH_CFGID_RPI_PIO_USB_CONFIGURATION, &pio_cfg);
+
     // Initialize USB Host Stack via TinyUSB
     tuh_init(BOARD_TUH_RHPORT);
+
+    // Loop running the TinyUSB host task
+    while (true) {
+        tuh_task();
+    }
+}
+
+int main()
+{
+    // Set system clock to 120MHz (a multiple of 12MHz) which is required for PIO-USB timing
+    bool clock_ok = set_sys_clock_khz(120000, false);
+
+    // Initialize standard IO (UART stdio)
+    stdio_init_all();
+    
+    sleep_ms(100); // Let stdio settle
+    if (clock_ok) {
+        printf("Clock set to 120 MHz successfully. Actual: %lu Hz\n", clock_get_hz(clk_sys));
+    } else {
+        printf("Failed to set clock to 120 MHz! Actual: %lu Hz. PIO-USB may not function.\n", clock_get_hz(clk_sys));
+    }
+
+    // Launch USB stack host task on Core 1
+    multicore_reset_core1();
+    multicore_launch_core1(core1_main);
 
     // Initialize physical UART link to spinalSynth
     uart_init(UART_ID, BAUD_RATE);
@@ -207,10 +267,13 @@ int main()
     write_register(REG_VOLUME, 0xFF);
     write_register(REG_ENV_CTRL, env_ctrl_state);
 
-    printf("spinalSynth USB MIDI Host UART Bridge Initialized.\n");
+    printf("spinalSynth USB MIDI Host UART Bridge Initialized on GPIO pins (D+=16, D-=17).\n");
 
-    // Continuous execution loop
+    // Continuous execution loop for Core 0
     while (true) {
-        tuh_task();
+        #if USB_DEBUG_PRINTS
+        printf("SOF Counter: %lu\n", pio_usb_host_get_frame_number());
+        #endif
+        sleep_ms(1000);
     }
 }

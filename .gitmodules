@@ -1,0 +1,3 @@
+[submodule "spinalSynth_MIDI_PICO2/Pico-PIO-USB"]
+	path = spinalSynth_MIDI_PICO2/Pico-PIO-USB
+	url = https://github.com/sekigon-gonnoc/Pico-PIO-USB.git

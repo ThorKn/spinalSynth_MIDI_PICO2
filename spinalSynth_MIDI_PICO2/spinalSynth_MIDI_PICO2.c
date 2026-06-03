@@ -4,6 +4,7 @@
 #include "hardware/uart.h"
 #include "hardware/gpio.h"
 #include "tusb.h"
+#include "host/usbh_pvt.h"
 #include "usb_midi_host.h"
 
 // Synthesizer Register Addresses
@@ -90,6 +91,21 @@ static void set_env_curve_model(uint8_t curve_model) {
 static void set_env_gate(bool gate_on) {
     uint8_t gate_byte = gate_on ? 0x01 : 0x00;
     write_register(REG_ENV_GATE, gate_byte);
+}
+
+// Implementation of TinyUSB weak callback to register custom MIDI class driver
+usbh_class_driver_t const* usbh_app_driver_get_cb(uint8_t* driver_count) {
+    static usbh_class_driver_t const midi_driver = {
+        .name = "MIDI",
+        .init = midih_init,
+        .deinit = midih_deinit,
+        .open = midih_open,
+        .set_config = midih_set_config,
+        .xfer_cb = midih_xfer_cb,
+        .close = midih_close
+    };
+    *driver_count = 1;
+    return &midi_driver;
 }
 
 //--------------------------------------------------------------------

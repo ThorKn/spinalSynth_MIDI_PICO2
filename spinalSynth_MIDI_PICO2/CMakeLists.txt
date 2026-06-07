@@ -47,6 +47,12 @@ pico_set_program_version(spinalSynth_MIDI_PICO2 "0.1")
 pico_enable_stdio_uart(spinalSynth_MIDI_PICO2 1)
 pico_enable_stdio_usb(spinalSynth_MIDI_PICO2 0)
 
+target_compile_definitions(spinalSynth_MIDI_PICO2 PRIVATE
+    PICO_DEFAULT_UART=1
+    PICO_DEFAULT_UART_TX_PIN=4
+    PICO_DEFAULT_UART_RX_PIN=5
+)
+
 # Add the standard library and TinyUSB Host libraries to the build
 target_link_libraries(spinalSynth_MIDI_PICO2
         pico_stdlib

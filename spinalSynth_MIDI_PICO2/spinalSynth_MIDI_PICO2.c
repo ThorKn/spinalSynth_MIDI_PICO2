@@ -30,10 +30,10 @@
 #define MAX_FREQ_WORD    ((1 << PHASE_ACC_BITS) - 1)
 
 // Pico UART Defines
-#define UART_ID          uart1
+#define UART_ID          uart0
 #define BAUD_RATE        115200
-#define UART_TX_PIN      4
-#define UART_RX_PIN      5
+#define UART_TX_PIN      0
+#define UART_RX_PIN      1
 
 #ifndef BOARD_TUH_RHPORT
 #define BOARD_TUH_RHPORT 0

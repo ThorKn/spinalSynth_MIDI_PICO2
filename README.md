@@ -17,13 +17,13 @@ Connect the Pico 2 UART TX pins directly to the `spinalSynth` RX pins (3.3V logi
 
 | Pico 2 Pin | Function | Target / Connection |
 |---|---|---|
-| **GPIO 4 (Pin 6)** | UART1 TX | `spinalSynth` RX (Command Input) |
-| **GPIO 5 (Pin 7)** | UART1 RX | `spinalSynth` TX (Optional Command Output) |
-| **GPIO 0 (Pin 1)** | UART0 TX | Debug Console RX (115200 Baud serial monitor) |
-| **GPIO 1 (Pin 2)** | UART0 RX | Debug Console TX (Optional serial command input) |
+| **GPIO 0 (Pin 1)** | UART0 TX | `spinalSynth` RX (Command Input) |
+| **GPIO 1 (Pin 2)** | UART0 RX | `spinalSynth` TX (Optional Command Output) |
+| **GPIO 4 (Pin 6)** | UART1 TX | Debug Console RX (115200 Baud serial monitor) |
+| **GPIO 5 (Pin 7)** | UART1 RX | Debug Console TX (Optional serial command input) |
 | **GND** | Ground | Common Ground |
 
-*Note: Since the onboard USB-C port is configured in USB Host mode to talk to the MIDI Hub/devices, debugging stdout cannot run over USB CDC. It is redirected to UART0 (Pins GP0/GP1) at 115200 baud.*
+*Note: Since the onboard USB-C port is configured in USB Host mode to talk to the MIDI Hub/devices, debugging stdout cannot run over USB CDC. It is redirected to UART1 (Pins GP4/GP5) at 115200 baud.*
 
 ---
 

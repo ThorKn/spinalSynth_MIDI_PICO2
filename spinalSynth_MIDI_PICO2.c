@@ -22,6 +22,11 @@
 #define REG_ENV_RELEASE  0x44
 #define REG_ENV_GATE     0x45
 
+#define REG_FILTER_ENABLE    0x50
+#define REG_FILTER_MODE      0x51
+#define REG_FILTER_CUTOFF    0x52
+#define REG_FILTER_RESONANCE 0x53
+
 #define CMD_WRITE        0x01
 
 // Synthesizer Constants
@@ -197,6 +202,33 @@ void tuh_midi_rx_cb(uint8_t dev_addr, uint32_t num_packets) {
                 set_env_curve_model(curve);
                 printf("[MIDI CC] CC 8 (Curve Model) -> %d\n", curve);
             }
+            else if (ctrl == 9) { // Filter Enable
+                uint8_t enable = (val >= 64) ? 1 : 0;
+                write_register(REG_FILTER_ENABLE, enable);
+                printf("[MIDI CC] CC 9 (Filter Enable) -> %d (%s)\n", enable, enable ? "ON" : "OFF");
+            }
+            else if (ctrl == 10) { // Filter Mode
+                uint8_t mode = val / 43;
+                if (mode > 2) mode = 2;
+                write_register(REG_FILTER_MODE, mode);
+                const char* mode_str = (mode == 0) ? "LP" : ((mode == 1) ? "BP" : "HP");
+                printf("[MIDI CC] CC 10 (Filter Mode) -> %d (%s)\n", mode, mode_str);
+            }
+            else if (ctrl == 11) { // Filter Cutoff
+                uint8_t cutoff = (val * 2) > 255 ? 255 : (val * 2);
+                write_register(REG_FILTER_CUTOFF, cutoff);
+                printf("[MIDI CC] CC 11 (Filter Cutoff) -> %d\n", cutoff);
+            }
+            else if (ctrl == 12) { // Filter Resonance
+                uint8_t resonance = (val * 2) > 255 ? 255 : (val * 2);
+                write_register(REG_FILTER_RESONANCE, resonance);
+                printf("[MIDI CC] CC 12 (Filter Resonance) -> %d\n", resonance);
+            }
+            else if (ctrl == 64) { // Volume
+                uint8_t volume = (val * 2) > 255 ? 255 : (val * 2);
+                write_register(REG_VOLUME, volume);
+                printf("[MIDI CC] CC 64 (Volume) -> %d\n", volume);
+            }
         }
     }
 }
@@ -220,8 +252,12 @@ int main()
     
     // Initial default register values
     sleep_ms(250); // Let clock settle
-    write_register(REG_VOLUME, 0xFF);
+    write_register(REG_VOLUME, 0x80);
     write_register(REG_ENV_CTRL, env_ctrl_state);
+    write_register(REG_FILTER_ENABLE, 0x00);
+    write_register(REG_FILTER_MODE, 0x00);
+    write_register(REG_FILTER_CUTOFF, 0xFF);
+    write_register(REG_FILTER_RESONANCE, 0x00);
 
     printf("spinalSynth USB MIDI Host UART Bridge Initialized.\n");
 

@@ -567,14 +567,22 @@ bool tuh_midi_configured(uint8_t dev_addr)
 
 bool midih_set_config(uint8_t dev_addr, uint8_t itf_num)
 {
-  (void) itf_num;
   TU_LOG2("Set config dev_addr=%u\r\n", dev_addr);
   midih_interface_t *p_midi_host = get_midi_host(dev_addr);
   TU_VERIFY(p_midi_host != NULL);
+
+  if (p_midi_host->configured)
+  {
+    usbh_driver_set_config_complete(dev_addr, itf_num);
+    return true;
+  }
   p_midi_host->configured = true;
 
-  TU_LOG2("Requesting poll IN endpoint %d\r\n", p_midi_host->ep_in);
-  TU_ASSERT(usbh_edpt_xfer(p_midi_host->dev_addr, p_midi_host->ep_in, p_midi_host->epin_buf, p_midi_host->ep_in_max), 0);
+  if (p_midi_host->ep_in != 0)
+  {
+    TU_LOG2("Requesting poll IN endpoint %d\r\n", p_midi_host->ep_in);
+    TU_ASSERT(usbh_edpt_xfer(p_midi_host->dev_addr, p_midi_host->ep_in, p_midi_host->epin_buf, p_midi_host->ep_in_max), 0);
+  }
   if (tuh_midi_mount_cb)
   {
     tuh_midi_mount_cb(dev_addr, p_midi_host->ep_in, p_midi_host->ep_out, p_midi_host->num_cables_rx, p_midi_host->num_cables_tx);

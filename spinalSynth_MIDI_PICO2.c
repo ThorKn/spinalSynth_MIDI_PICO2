@@ -47,6 +47,40 @@
 // Stateful register cache
 static uint8_t env_ctrl_state = 0x01; // Bit 0 is always true (1), others 0
 
+#define MODE_SELECT_PIN 2
+
+#define NOTE_STACK_MAX 32
+static uint8_t note_stack[NOTE_STACK_MAX];
+static int note_stack_size = 0;
+
+static void note_stack_push(uint8_t note) {
+    for (int i = 0; i < note_stack_size; i++) {
+        if (note_stack[i] == note) {
+            for (int j = i; j < note_stack_size - 1; j++) {
+                note_stack[j] = note_stack[j + 1];
+            }
+            note_stack_size--;
+            break;
+        }
+    }
+    if (note_stack_size < NOTE_STACK_MAX) {
+        note_stack[note_stack_size] = note;
+        note_stack_size++;
+    }
+}
+
+static void note_stack_remove(uint8_t note) {
+    for (int i = 0; i < note_stack_size; i++) {
+        if (note_stack[i] == note) {
+            for (int j = i; j < note_stack_size - 1; j++) {
+                note_stack[j] = note_stack[j + 1];
+            }
+            note_stack_size--;
+            i--;
+        }
+    }
+}
+
 // Write 3-byte UART frame: [CMD_WRITE] [Address] [Data]
 static void write_register(uint8_t address, uint8_t data) {
     uart_putc(UART_ID, CMD_WRITE);
@@ -143,17 +177,46 @@ void tuh_midi_rx_cb(uint8_t dev_addr, uint32_t num_packets) {
             uint8_t note = byte1;
             uint8_t velocity = byte2;
             if (velocity > 0) {
-                set_midi_note(note);
-                set_env_gate(true);
-                printf("[MIDI IN] Note On: %d, Velocity: %d\n", note, velocity);
+                if (gpio_get(MODE_SELECT_PIN)) { // Legato Mode (default / open)
+                    bool first_note = (note_stack_size == 0);
+                    note_stack_push(note);
+                    set_midi_note(note);
+                    if (first_note) {
+                        set_env_gate(true);
+                    }
+                    printf("[MIDI IN] Note On: %d, Velocity: %d (Legato)\n", note, velocity);
+                } else { // Retrigger Mode (jumper to GND)
+                    note_stack_size = 0;
+                    set_midi_note(note);
+                    set_env_gate(true);
+                    printf("[MIDI IN] Note On: %d, Velocity: %d (Retrigger)\n", note, velocity);
+                }
             } else {
-                set_env_gate(false);
+                if (gpio_get(MODE_SELECT_PIN)) { // Legato Mode
+                    note_stack_remove(note);
+                    if (note_stack_size == 0) {
+                        set_env_gate(false);
+                    } else {
+                        set_midi_note(note_stack[note_stack_size - 1]);
+                    }
+                } else { // Retrigger Mode
+                    set_env_gate(false);
+                }
                 printf("[MIDI IN] Note Off (Note On with Velocity=0): %d\n", note);
             }
         } 
         else if (msg_type == 0x80) { // Note Off
             uint8_t note = byte1;
-            set_env_gate(false);
+            if (gpio_get(MODE_SELECT_PIN)) { // Legato Mode
+                note_stack_remove(note);
+                if (note_stack_size == 0) {
+                    set_env_gate(false);
+                } else {
+                    set_midi_note(note_stack[note_stack_size - 1]);
+                }
+            } else { // Retrigger Mode
+                set_env_gate(false);
+            }
             printf("[MIDI IN] Note Off: %d\n", note);
         } 
         else if (msg_type == 0xB0) { // Control Change (CC)
@@ -249,6 +312,11 @@ int main()
     uart_init(UART_ID, BAUD_RATE);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+
+    // Configure Legato Jumper Selector
+    gpio_init(MODE_SELECT_PIN);
+    gpio_set_dir(MODE_SELECT_PIN, GPIO_IN);
+    gpio_pull_up(MODE_SELECT_PIN);
     
     // Initial default register values
     sleep_ms(250); // Let clock settle

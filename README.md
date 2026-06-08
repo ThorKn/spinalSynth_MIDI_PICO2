@@ -19,6 +19,7 @@ Connect the Pico 2 UART TX pins directly to the `spinalSynth` RX pins (3.3V logi
 |---|---|---|
 | **GPIO 0 (Pin 1)** | UART0 TX | `spinalSynth` RX (Command Input) |
 | **GPIO 1 (Pin 2)** | UART0 RX | `spinalSynth` TX (Optional Command Output) |
+| **GPIO 2 (Pin 4)** | Input (Pull-up) | Mode Selector Jumper (Open/default = Legato/Stacked, GND/Pin 3 = Retrigger) |
 | **GPIO 4 (Pin 6)** | UART1 TX | Debug Console RX (115200 Baud serial monitor) |
 | **GPIO 5 (Pin 7)** | UART1 RX | Debug Console TX (Optional serial command input) |
 | **GND** | Ground | Common Ground |

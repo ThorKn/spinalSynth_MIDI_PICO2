@@ -52,6 +52,26 @@ All parameters are mapped sequentially across CC 1 to 12:
 
 ---
 
+## Monophonic Playback Modes
+
+The bridge supports two monophonic note priority and envelope gate behaviors, selected via a hardware jumper on **GPIO 2 (Pin 4)**:
+
+### 1. Legato Mode (Stacked) — *Default Behavior (Jumper Open)*
+* **Selection:** Leave the selector pin **open** (GP2 is pulled High internally).
+* **MS-20 Style Behavior:**
+  * Pressing a note sets the pitch and sends `GATE ON` (`0x01` to `REG_ENV_GATE`).
+  * While holding a note, pressing additional notes updates the pitch to the newest note, but the envelope gate remains high (legato play).
+  * Releasing a note while other keys are still held down reverts the pitch back to the most recently pressed remaining note, without interrupting the gate.
+  * `GATE OFF` (`0x00`) is only sent when all keys are released (the note stack is empty).
+
+### 2. Retrigger Mode — *Jumper Installed (GP2 connected to GND)*
+* **Selection:** Install a jumper bridging **GP2 (Pin 4)** and **GND (Pin 3)**.
+* **Standard Monophonic Behavior:**
+  * Every new Note On event immediately updates the pitch and sends `GATE ON`.
+  * Every Note Off event immediately sends `GATE OFF`, stopping the sound even if other keys are still held.
+
+---
+
 ## Technical Details & USB Host Stack
 * **Native USB Controller (Port 0)**: This project runs on the native hardware USB controller of the RP2350, utilizing standard differential signals. This keeps the implementation clean and avoids the complexity, core dedication, clock-scaling, and resource consumption of bit-banged PIO solutions.
 * **TinyUSB Class Driver Callback**: In Pico SDK 2.x, the MIDI Host class driver is not registered automatically. To bind and mount the USB MIDI device interface when plugged in, the application implements the weak callback `usbh_app_driver_get_cb()` to return the MIDI class driver:

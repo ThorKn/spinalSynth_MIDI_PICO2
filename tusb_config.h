@@ -22,8 +22,14 @@
 //--------------------------------------------------------------------
 
 #ifndef CFG_TUSB_RHPORT0_MODE
-  #define CFG_TUSB_RHPORT0_MODE    OPT_MODE_HOST
+  #define CFG_TUSB_RHPORT0_MODE    (OPT_MODE_DEVICE | OPT_MODE_HOST)
 #endif
+
+// Enable USB MIDI Device Class Driver
+#define CFG_TUD_ENABLED          1
+#define CFG_TUD_MIDI             1
+#define CFG_TUD_MIDI_RX_BUFSIZE  64
+#define CFG_TUD_MIDI_TX_BUFSIZE  64
 
 #define CFG_TUH_API_EDPT_XFER    1
 

@@ -8,12 +8,12 @@
 #include "usb_midi_host.h"
 
 // Synthesizer Register Addresses
-#define REG_FREQ_LOW     0x00
-#define REG_FREQ_MID     0x01
-#define REG_FREQ_HIGH    0x02
-#define REG_WAVE_SEL     0x03
-#define REG_PWM_WIDTH    0x04
-#define REG_VOLUME       0x05
+#define REG_FREQ_LOW     0x30
+#define REG_FREQ_MID     0x31
+#define REG_FREQ_HIGH    0x32
+#define REG_WAVE_SEL     0x33
+#define REG_PWM_WIDTH    0x34
+#define REG_VOLUME       0x35
 
 #define REG_ENV_CTRL     0x40
 #define REG_ENV_ATTACK   0x41
@@ -22,7 +22,7 @@
 #define REG_ENV_RELEASE  0x44
 #define REG_ENV_GATE     0x45
 
-#define REG_FILTER_ENABLE    0x50
+#define REG_FILTER_CTRL      0x50
 #define REG_FILTER_MODE      0x51
 #define REG_FILTER_CUTOFF    0x52
 #define REG_FILTER_RESONANCE 0x53
@@ -45,7 +45,7 @@
 #endif
 
 // Stateful register cache
-static uint8_t env_ctrl_state = 0x01; // Bit 0 is always true (1), others 0
+static uint8_t env_ctrl_state = 0x00; // Bit 0 is always false(0), others 0
 
 #define MODE_SELECT_PIN 2
 
@@ -265,10 +265,10 @@ void tuh_midi_rx_cb(uint8_t dev_addr, uint32_t num_packets) {
                 set_env_curve_model(curve);
                 printf("[MIDI CC] CC 8 (Curve Model) -> %d\n", curve);
             }
-            else if (ctrl == 9) { // Filter Enable
-                uint8_t enable = (val >= 64) ? 1 : 0;
-                write_register(REG_FILTER_ENABLE, enable);
-                printf("[MIDI CC] CC 9 (Filter Enable) -> %d (%s)\n", enable, enable ? "ON" : "OFF");
+            else if (ctrl == 9) { // Filter Bypass
+                uint8_t bypass = (val >= 64) ? 2 : 0;
+                write_register(REG_FILTER_CTRL, bypass);
+                printf("[MIDI CC] CC 9 (Filter Bypass) -> %d (%s)\n", bypass, bypass ? "ON" : "OFF");
             }
             else if (ctrl == 10) { // Filter Mode
                 uint8_t mode = val / 43;
@@ -322,7 +322,7 @@ int main()
     sleep_ms(250); // Let clock settle
     write_register(REG_VOLUME, 0x80);
     write_register(REG_ENV_CTRL, env_ctrl_state);
-    write_register(REG_FILTER_ENABLE, 0x00);
+    write_register(REG_FILTER_CTRL, 0x00);
     write_register(REG_FILTER_MODE, 0x00);
     write_register(REG_FILTER_CUTOFF, 0xFF);
     write_register(REG_FILTER_RESONANCE, 0x00);

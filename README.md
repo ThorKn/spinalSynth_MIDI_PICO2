@@ -34,21 +34,21 @@ All parameters are mapped sequentially across CC 1 to 12:
 
 | MIDI Event | Target Register | Address | Description |
 |---|---|---|---|
-| **Note ON** | DDS Frequency / Gate | `0x00`-`0x02` / `0x45` | Set 24-bit DDS tuning word; writes `0x01` to `ENV_GATE` |
+| **Note ON** | DDS Frequency / Gate | `0x30`-`0x32` / `0x45` | Set 24-bit DDS tuning word; writes `0x01` to `ENV_GATE` |
 | **Note OFF**| Gate | `0x45` | Writes `0x00` to `ENV_GATE` |
-| **CC 1** | `PWM_WIDTH` | `0x04` | Duty cycle for PWM (scaled 0-127 $\rightarrow$ 0-255) |
-| **CC 2** | `WAVE_SEL` | `0x03` | Waveform selection (maps onto states 0 to 5) |
+| **CC 1** | `PWM_WIDTH` | `0x34` | Duty cycle for PWM (scaled 0-127 $\rightarrow$ 0-255) |
+| **CC 2** | `WAVE_SEL` | `0x33` | Waveform selection (maps onto states 0 to 5) |
 | **CC 3** | `ENV_ATTACK` | `0x41` | Attack time duration |
 | **CC 4** | `ENV_DECAY` | `0x42` | Decay time duration |
 | **CC 5** | `ENV_SUSTAIN`| `0x43` | Sustain Level |
 | **CC 6** | `ENV_RELEASE`| `0x44` | Release time duration |
 | **CC 7** | `ENV_CTRL` [2] | `0x40` | Loop Mode (ON if $\ge$ 64, OFF if < 64) |
 | **CC 8** | `ENV_CTRL` [5:4]| `0x40` | Curve Select (0=Lin, 1=Exp, 2=Log, 3=S-Curve) |
-| **CC 9** | `FILTER_ENABLE` | `0x50` | Filter Enable (ON if $\ge$ 64, OFF if < 64) |
+| **CC 9** | `FILTER_CTRL [1]` | `0x50` | Filter Bypass (ON if $\ge$ 64, OFF if < 64) |
 | **CC 10** | `FILTER_MODE` | `0x51` | Response Mode (LP if 0-42, BP if 43-85, HP if 86-127) |
 | **CC 11** | `FILTER_CUTOFF` | `0x52` | Cutoff Frequency (scaled 0-127 $\rightarrow$ 0-255) |
 | **CC 12** | `FILTER_RESONANCE`| `0x53` | Resonance / Feedback (scaled 0-127 $\rightarrow$ 0-255) |
-| **CC 64** | `VOLUME`          | `0x05` | Output volume (scaled 0-127 $\rightarrow$ 0-255) |
+| **CC 64** | `VOLUME`          | `0x35` | Output volume (scaled 0-127 $\rightarrow$ 0-255) |
 
 ---
 

@@ -19,12 +19,13 @@ Connect the Pico 2 UART TX pins directly to the `spinalSynth` RX pins (3.3V logi
 |---|---|---|
 | **GPIO 0 (Pin 1)** | UART0 TX | `spinalSynth` RX (Command Input) |
 | **GPIO 1 (Pin 2)** | UART0 RX | `spinalSynth` TX (Optional Command Output) |
-| **GPIO 2 (Pin 4)** | Input (Pull-up) | Mode Selector Jumper (Open/default = Legato/Stacked, GND/Pin 3 = Retrigger) |
+| **GPIO 2 (Pin 4)** | Input (Pull-up) | Playback Mode Jumper (Open/default = Legato Stacked, GND/Pin 3 = Retrigger) |
+| **GPIO 3 (Pin 5)** | Input (Pull-up) | USB Role Jumper (Open/default = USB Host, GND/Pin 3 = USB Device/DAW) |
 | **GPIO 4 (Pin 6)** | UART1 TX | Debug Console RX (115200 Baud serial monitor) |
 | **GPIO 5 (Pin 7)** | UART1 RX | Debug Console TX (Optional serial command input) |
 | **GND** | Ground | Common Ground |
 
-*Note: Since the onboard USB-C port is configured in USB Host mode to talk to the MIDI Hub/devices, debugging stdout cannot run over USB CDC. It is redirected to UART1 (Pins GP4/GP5) at 115200 baud.*
+*Note: Since the onboard USB-C port is configured dynamically for USB Host or Device communication, debugging stdout is redirected to UART1 (Pins GP4/GP5) at 115200 baud to avoid interfering with MIDI traffic or DAW connections.*
 
 ---
 
@@ -72,7 +73,24 @@ The bridge supports two monophonic note priority and envelope gate behaviors, se
 
 ---
 
-## Technical Details & USB Host Stack
+## USB Role Selection (Host vs. Device)
+
+The Pico 2 determines its USB operational mode dynamically at startup by reading the state of **GPIO 3 (Pin 5)**:
+
+### 1. USB Host Mode — *Default Behavior (Jumper Open)*
+* **Selection:** Leave GP3 **open** (it is pulled High internally).
+* **Behavior:** The Pico 2 acts as a USB Host, powering and communicating with external USB MIDI controllers (directly or via a USB Hub).
+* **Console Logs:** `spinalSynth USB MIDI Bridge Initialized [HOST MODE].`
+
+### 2. USB Device Mode — *Jumper Installed (GP3 connected to GND)*
+* **Selection:** Install a jumper bridging **GP3 (Pin 5)** to the nearby **GND (Pin 3)**.
+* **Behavior:** The Pico 2 acts as a class-compliant USB MIDI Device. You can connect it directly to a PC or DAW.
+* **Device Identity:** Enumerates as **"spinalSynth MIDI Interface"** (using Raspberry Pi Vendor ID `0x2e8a` and product ID `0x0003`).
+* **Console Logs:** `spinalSynth USB MIDI Bridge Initialized [DEVICE MODE].`
+
+---
+
+## Technical Details & USB Host/Device Stack
 * **Native USB Controller (Port 0)**: This project runs on the native hardware USB controller of the RP2350, utilizing standard differential signals. This keeps the implementation clean and avoids the complexity, core dedication, clock-scaling, and resource consumption of bit-banged PIO solutions.
 * **TinyUSB Class Driver Callback**: In Pico SDK 2.x, the MIDI Host class driver is not registered automatically. To bind and mount the USB MIDI device interface when plugged in, the application implements the weak callback `usbh_app_driver_get_cb()` to return the MIDI class driver:
   ```c

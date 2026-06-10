@@ -38,6 +38,7 @@ pico_sdk_init()
 add_executable(spinalSynth_MIDI_PICO2
     spinalSynth_MIDI_PICO2.c
     usb_midi_host.c
+    usb_descriptors.c
 )
 
 pico_set_program_name(spinalSynth_MIDI_PICO2 "spinalSynth_MIDI_PICO2")
@@ -57,6 +58,7 @@ target_compile_definitions(spinalSynth_MIDI_PICO2 PRIVATE
 target_link_libraries(spinalSynth_MIDI_PICO2
         pico_stdlib
         tinyusb_host
+        tinyusb_device
         m)
 
 # Add the standard include files to the build

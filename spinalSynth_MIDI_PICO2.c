@@ -7,25 +7,48 @@
 #include "host/usbh_pvt.h"
 #include "usb_midi_host.h"
 
-// Synthesizer Register Addresses
-#define REG_FREQ_LOW     0x30
-#define REG_FREQ_MID     0x31
-#define REG_FREQ_HIGH    0x32
-#define REG_WAVE_SEL     0x33
-#define REG_PWM_WIDTH    0x34
-#define REG_VOLUME       0x35
+// Voice Base Address
+#define VOICE_BASE_ADDR      0x10
 
-#define REG_ENV_CTRL     0x40
-#define REG_ENV_ATTACK   0x41
-#define REG_ENV_DECAY    0x42
-#define REG_ENV_SUSTAIN  0x43
-#define REG_ENV_RELEASE  0x44
-#define REG_ENV_GATE     0x45
+// Voice-specific registers offsets
+#define OSC_FREQ_LOW         0x05
+#define OSC_FREQ_MID         0x06
+#define OSC_FREQ_HIGH        0x07
+#define OSC_WAVE_SEL         0x08
+#define OSC_PWM_WIDTH        0x09
+#define OSC_VOLUME           0x0A
 
-#define REG_FILTER_CTRL      0x50
-#define REG_FILTER_MODE      0x51
-#define REG_FILTER_CUTOFF    0x52
-#define REG_FILTER_RESONANCE 0x53
+#define ENV_CTRL             0x0D
+#define ENV_ATTACK           0x0E
+#define ENV_DECAY            0x0F
+#define ENV_SUSTAIN          0x10
+#define ENV_RELEASE          0x11
+#define ENV_GATE             0x12
+
+#define FILTER_CTRL          0x15
+#define FILTER_MODE          0x16
+#define FILTER_CUTOFF        0x17
+#define FILTER_RESONANCE     0x18
+
+// Computed Register Addresses
+#define REG_FREQ_LOW         (VOICE_BASE_ADDR + OSC_FREQ_LOW)
+#define REG_FREQ_MID         (VOICE_BASE_ADDR + OSC_FREQ_MID)
+#define REG_FREQ_HIGH        (VOICE_BASE_ADDR + OSC_FREQ_HIGH)
+#define REG_WAVE_SEL         (VOICE_BASE_ADDR + OSC_WAVE_SEL)
+#define REG_PWM_WIDTH        (VOICE_BASE_ADDR + OSC_PWM_WIDTH)
+#define REG_VOLUME           (VOICE_BASE_ADDR + OSC_VOLUME)
+
+#define REG_ENV_CTRL         (VOICE_BASE_ADDR + ENV_CTRL)
+#define REG_ENV_ATTACK       (VOICE_BASE_ADDR + ENV_ATTACK)
+#define REG_ENV_DECAY        (VOICE_BASE_ADDR + ENV_DECAY)
+#define REG_ENV_SUSTAIN      (VOICE_BASE_ADDR + ENV_SUSTAIN)
+#define REG_ENV_RELEASE      (VOICE_BASE_ADDR + ENV_RELEASE)
+#define REG_ENV_GATE         (VOICE_BASE_ADDR + ENV_GATE)
+
+#define REG_FILTER_CTRL      (VOICE_BASE_ADDR + FILTER_CTRL)
+#define REG_FILTER_MODE      (VOICE_BASE_ADDR + FILTER_MODE)
+#define REG_FILTER_CUTOFF    (VOICE_BASE_ADDR + FILTER_CUTOFF)
+#define REG_FILTER_RESONANCE (VOICE_BASE_ADDR + FILTER_RESONANCE)
 
 #define CMD_WRITE        0x01
 

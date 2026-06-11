@@ -33,23 +33,23 @@ Connect the Pico 2 UART TX pins directly to the `spinalSynth` RX pins (3.3V logi
 
 All parameters are mapped sequentially across CC 1 to 12:
 
-| MIDI Event | Target Register | Address | Description |
-|---|---|---|---|
-| **Note ON** | DDS Frequency / Gate | `0x00`-`0x02` / `0x45` | Set 24-bit DDS tuning word; writes `0x01` to `ENV_GATE` |
-| **Note OFF**| Gate | `0x45` | Writes `0x00` to `ENV_GATE` |
-| **CC 1** | `PWM_WIDTH` | `0x04` | Duty cycle for PWM (scaled 0-127 $\rightarrow$ 0-255) |
-| **CC 2** | `WAVE_SEL` | `0x03` | Waveform selection (maps onto states 0 to 5) |
-| **CC 3** | `ENV_ATTACK` | `0x41` | Attack time duration |
-| **CC 4** | `ENV_DECAY` | `0x42` | Decay time duration |
-| **CC 5** | `ENV_SUSTAIN`| `0x43` | Sustain Level |
-| **CC 6** | `ENV_RELEASE`| `0x44` | Release time duration |
-| **CC 7** | `ENV_CTRL` [2] | `0x40` | Loop Mode (ON if $\ge$ 64, OFF if < 64) |
-| **CC 8** | `ENV_CTRL` [5:4]| `0x40` | Curve Select (0=Lin, 1=Exp, 2=Log, 3=S-Curve) |
-| **CC 9** | `FILTER_ENABLE` | `0x50` | Filter Enable (ON if $\ge$ 64, OFF if < 64) |
-| **CC 10** | `FILTER_MODE` | `0x51` | Response Mode (LP if 0-42, BP if 43-85, HP if 86-127) |
-| **CC 11** | `FILTER_CUTOFF` | `0x52` | Cutoff Frequency (scaled 0-127 $\rightarrow$ 0-255) |
-| **CC 12** | `FILTER_RESONANCE`| `0x53` | Resonance / Feedback (scaled 0-127 $\rightarrow$ 0-255) |
-| **CC 64** | `VOLUME`          | `0x05` | Output volume (scaled 0-127 $\rightarrow$ 0-255) |
+| MIDI Event | Target Register | Offset | Address (Voice 0 Base `0x10`) | Description |
+|---|---|---|---|---|
+| **Note ON** | DDS Frequency / Gate | `0x05`-`0x07` / `0x12` | `0x15`-`0x17` / `0x22` | Set 24-bit DDS tuning word; writes `0x01` to `ENV_GATE` |
+| **Note OFF**| Gate | `0x12` | `0x22` | Writes `0x00` to `ENV_GATE` |
+| **CC 1** | `PWM_WIDTH` | `0x09` | `0x19` | Duty cycle for PWM (scaled 0-127 $\rightarrow$ 0-255) |
+| **CC 2** | `WAVE_SEL` | `0x08` | `0x18` | Waveform selection (maps onto states 0 to 5) |
+| **CC 3** | `ENV_ATTACK` | `0x0E` | `0x1E` | Attack time duration |
+| **CC 4** | `ENV_DECAY` | `0x0F` | `0x1F` | Decay time duration |
+| **CC 5** | `ENV_SUSTAIN`| `0x10` | `0x20` | Sustain Level |
+| **CC 6** | `ENV_RELEASE`| `0x11` | `0x21` | Release time duration |
+| **CC 7** | `ENV_CTRL` [2] | `0x0D` | `0x1D` | Loop Mode (ON if $\ge$ 64, OFF if < 64) |
+| **CC 8** | `ENV_CTRL` [5:4]| `0x0D` | `0x1D` | Curve Select (0=Lin, 1=Exp, 2=Log, 3=S-Curve) |
+| **CC 9** | `FILTER_CTRL [1]` | `0x15` | `0x25` | Filter Bypass (ON if $\ge$ 64, OFF if < 64) |
+| **CC 10** | `FILTER_MODE` | `0x16` | `0x26` | Response Mode (LP if 0-42, BP if 43-85, HP if 86-127) |
+| **CC 11** | `FILTER_CUTOFF` | `0x17` | `0x27` | Cutoff Frequency (scaled 0-127 $\rightarrow$ 0-255) |
+| **CC 12** | `FILTER_RESONANCE`| `0x18` | `0x28` | Resonance / Feedback (scaled 0-127 $\rightarrow$ 0-255) |
+| **CC 64** | `VOLUME`          | `0x0A` | `0x1A` | Output volume (scaled 0-127 $\rightarrow$ 0-255) |
 
 ---
 
